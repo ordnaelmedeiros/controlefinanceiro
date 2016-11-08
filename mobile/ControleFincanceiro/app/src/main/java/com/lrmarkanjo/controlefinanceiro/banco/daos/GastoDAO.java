@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import com.lrmarkanjo.controlefinanceiro.banco.core.DBHelper;
 import com.lrmarkanjo.controlefinanceiro.banco.enums.GastoGrupo;
 import com.lrmarkanjo.controlefinanceiro.banco.enums.GastoGrupoCusto;
+import com.lrmarkanjo.controlefinanceiro.banco.enums.TipoPagamento;
 import com.lrmarkanjo.controlefinanceiro.banco.modelos.Gasto;
 
 import java.math.BigDecimal;
@@ -61,7 +62,7 @@ public class GastoDAO {
 
     public Gasto select(Integer id) {
 
-        String selectQuery = "select gasto_id, data, valor, grupo, sub_grupo, descricao, imagem from gasto where gasto_id = " + id;
+        String selectQuery = "select gasto_id, data, valor, tipo, grupo, sub_grupo, descricao, imagem from gasto where gasto_id = " + id;
         SQLiteDatabase db = new DBHelper(this.context).getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
 
@@ -78,11 +79,11 @@ public class GastoDAO {
                     System.out.println("Erro converter data");
                 }
                 gasto.setValor(new BigDecimal(cursor.getString(2)));
-
-                gasto.setGrupo(GastoGrupo.valueOf(cursor.getString(3)));
-                gasto.setSubGrupo(GastoGrupoCusto.valueOf(cursor.getString(4)));
-                gasto.setDescricao(cursor.getString(5));
-                gasto.setImagem(cursor.getBlob(6));
+                gasto.setTipoPagamento(TipoPagamento.valueOf(cursor.getString(3)));
+                gasto.setGrupo(GastoGrupo.valueOf(cursor.getString(4)));
+                gasto.setSubGrupo(GastoGrupoCusto.valueOf(cursor.getString(5)));
+                gasto.setDescricao(cursor.getString(6));
+                gasto.setImagem(cursor.getBlob(7));
 
             } while (cursor.moveToNext());
         }
@@ -90,6 +91,14 @@ public class GastoDAO {
 
         return gasto;
 
+    }
+
+    public boolean gravar(Gasto gasto) {
+        if (gasto.getId()==null) {
+            return this.insert(gasto);
+        } else {
+            return this.update(gasto);
+        }
     }
 
     public boolean insert(Gasto gasto) {
@@ -108,6 +117,34 @@ public class GastoDAO {
             values.put("imagem", gasto.getImagem());
 
             db.insert("gasto", null, values);
+            db.close();
+
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+
+    }
+
+    public boolean update(Gasto gasto) {
+
+        try {
+
+            SQLiteDatabase db = new DBHelper(this.context).getWritableDatabase();
+
+            ContentValues values = new ContentValues();
+            values.put("gasto_id", gasto.getId());
+            values.put("data", dfSql.format(gasto.getData()));
+            values.put("valor", gasto.getValor().floatValue());
+            values.put("tipo", gasto.getTipoPagamento().toString());
+            values.put("grupo", gasto.getGrupo().toString());
+            values.put("sub_grupo", gasto.getSubGrupo().toString());
+            values.put("descricao", gasto.getDescricao());
+            values.put("imagem", gasto.getImagem());
+
+            db.update("gasto", values, " gasto_id = ? ", new String[]{String.valueOf(gasto.getId())});
             db.close();
 
             return true;

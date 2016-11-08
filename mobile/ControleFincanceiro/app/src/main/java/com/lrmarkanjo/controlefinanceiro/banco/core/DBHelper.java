@@ -38,7 +38,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion==1 && newVersion==2) {
+        if (oldVersion<2) {
             String alterTableGastos = "alter table gasto add imagem BLOB";
             db.execSQL(alterTableGastos);
         }

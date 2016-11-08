@@ -48,7 +48,11 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
     private EditText txtDescricao;
     private ImageView btnImagem;
     private Button btnSalvar;
+
     private Date data;
+    private Integer gastoId = null;
+    private byte[] byteArray;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,12 +88,14 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
         this.btnSalvar = (Button) findViewById(R.id.btnSalvar);
         this.btnSalvar.setOnClickListener(this);
 
+        this.gastoId = null;
+
         if (this.getIntent()!=null && this.getIntent().getExtras()!=null) {
             Object obj = this.getIntent().getExtras().get("gasto_id");
             if (obj != null) {
 
-                Integer gesto_id = (Integer) obj;
-                Gasto gasto = new GastoDAO(this).select(gesto_id);
+                this.gastoId = (Integer) obj;
+                Gasto gasto = new GastoDAO(this).select(gastoId);
 
                 this.data = gasto.getData();
 
@@ -113,12 +119,10 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
                 }
 
                 if (gasto.getImagem()!=null) {
-                    Bitmap bitmap = BitmapFactory.decodeByteArray(gasto.getImagem(), 0, gasto.getImagem().length);
+                    byteArray = gasto.getImagem();
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
                     this.btnImagem.setImageBitmap(bitmap);
                 }
-
-
-                this.btnSalvar.setEnabled(false);
 
             }
         }
@@ -166,6 +170,7 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
             SimpleDateFormat dfSql = new SimpleDateFormat("yyyy-MM-dd");
 
             Gasto gasto = new Gasto();
+            gasto.setId(this.gastoId);
             gasto.setData(this.data);
             if (!this.txtValor.getText().equals("")) {
                 gasto.setValor(new BigDecimal(this.txtValor.getText().toString()));
@@ -176,7 +181,7 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
             gasto.setDescricao(this.txtDescricao.getText().toString());
             gasto.setImagem(byteArray);
 
-            if (new GastoDAO(this).insert(gasto)) {
+            if (new GastoDAO(this).gravar(gasto)) {
                 MainActivity.instance.refreshGastos();
                 onBackPressed();
             }
@@ -235,8 +240,6 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
         }
 
     }
-
-    private byte[] byteArray;
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
