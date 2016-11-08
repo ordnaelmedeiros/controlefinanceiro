@@ -1,5 +1,6 @@
 package com.lrmarkanjo.controlefinanceiro;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -12,10 +13,26 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
+import com.lrmarkanjo.controlefinanceiro.adapters.GastoArrayAdapter;
+import com.lrmarkanjo.controlefinanceiro.banco.daos.GastoDAO;
+import com.lrmarkanjo.controlefinanceiro.banco.modelos.Gasto;
+import com.lrmarkanjo.controlefinanceiro.views.AdicionarActivity;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener, AdapterView.OnItemClickListener {
 
     private FloatingActionButton btnAdicionar;
+    private ListView lstGastos;
+
+    public static MainActivity instance = null;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +52,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        this.lstGastos = (ListView) findViewById(R.id.lstGastos);
+        this.lstGastos.setOnItemClickListener(this);
+
+        this.refreshGastos();
+
+        instance = this;
+
+    }
+
+    private ArrayList<Gasto> lista = null;
+
+    public void refreshGastos() {
+
+        lista = (ArrayList<Gasto>) new GastoDAO(this).selectAll();
+        this.lstGastos.setAdapter(new GastoArrayAdapter(this, R.layout.gastos_row, lista));
+
     }
 
     @Override
@@ -106,7 +140,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onClick(View v) {
         if (v.equals(this.btnAdicionar)) {
-            Snackbar.make(v, "Opção não Implementada", Snackbar.LENGTH_LONG).setAction("Action", null).show();
+            //Snackbar.make(v, "Opção não Implementada", Snackbar.LENGTH_LONG).setAction("Action", null).show();
+            Intent intencao = new Intent(this, AdicionarActivity.class);
+            startActivity(intencao);
         }
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+        Intent intencao = new Intent(this, AdicionarActivity.class);
+        intencao.putExtra("gasto_id", lista.get(position).getId());
+        startActivity(intencao);
+
     }
 }
