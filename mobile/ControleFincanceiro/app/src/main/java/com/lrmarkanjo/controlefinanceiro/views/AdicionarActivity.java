@@ -12,6 +12,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -30,13 +32,11 @@ import com.lrmarkanjo.controlefinanceiro.banco.enums.TipoPagamento;
 import com.lrmarkanjo.controlefinanceiro.banco.modelos.Gasto;
 
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Objects;
 
 public class AdicionarActivity extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemSelectedListener {
 
@@ -47,12 +47,10 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
     private Spinner cbxTipoPagamento;
     private EditText txtDescricao;
     private ImageView btnImagem;
-    private Button btnSalvar;
 
     private Date data;
     private Integer gastoId = null;
     private byte[] byteArray;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,9 +82,6 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
 
         this.btnImagem = (ImageView) findViewById(R.id.btnImagem);
         this.btnImagem.setOnClickListener(this);
-
-        this.btnSalvar = (Button) findViewById(R.id.btnSalvar);
-        this.btnSalvar.setOnClickListener(this);
 
         this.gastoId = null;
 
@@ -132,6 +127,23 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
 
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.activity_adicionar_drawer, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.btnSalvarGasto: {
+                this.salvar();
+                return true;
+            }
+        }
+        return false;
+    }
+
     private SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
 
     private void formataData() {
@@ -165,31 +177,33 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
             //System.out.println("show dialog");
             showDialog(0);
 
-        } else if (v.equals(this.btnSalvar)) {
-
-            SimpleDateFormat dfSql = new SimpleDateFormat("yyyy-MM-dd");
-
-            Gasto gasto = new Gasto();
-            gasto.setId(this.gastoId);
-            gasto.setData(this.data);
-            if (!this.txtValor.getText().equals("")) {
-                gasto.setValor(new BigDecimal(this.txtValor.getText().toString()));
-            }
-            gasto.setTipoPagamento(TipoPagamento.valueOf(this.cbxTipoPagamento.getSelectedItem().toString()));
-            gasto.setGrupo(GastoGrupo.valueOf(this.cbxGastoGrupo.getSelectedItem().toString()));
-            gasto.setSubGrupo(GastoGrupoCusto.valueOf(this.cbxGastoSubGrupo.getSelectedItem().toString()));
-            gasto.setDescricao(this.txtDescricao.getText().toString());
-            gasto.setImagem(byteArray);
-
-            if (new GastoDAO(this).gravar(gasto)) {
-                MainActivity.instance.refreshGastos();
-                onBackPressed();
-            }
-
         } else if (v.equals(this.btnImagem)) {
 
             this.abrirCamera();
 
+        }
+
+    }
+
+    private void salvar() {
+
+        SimpleDateFormat dfSql = new SimpleDateFormat("yyyy-MM-dd");
+
+        Gasto gasto = new Gasto();
+        gasto.setId(this.gastoId);
+        gasto.setData(this.data);
+        if (!this.txtValor.getText().equals("")) {
+            gasto.setValor(new BigDecimal(this.txtValor.getText().toString()));
+        }
+        gasto.setTipoPagamento(TipoPagamento.valueOf(this.cbxTipoPagamento.getSelectedItem().toString()));
+        gasto.setGrupo(GastoGrupo.valueOf(this.cbxGastoGrupo.getSelectedItem().toString()));
+        gasto.setSubGrupo(GastoGrupoCusto.valueOf(this.cbxGastoSubGrupo.getSelectedItem().toString()));
+        gasto.setDescricao(this.txtDescricao.getText().toString());
+        gasto.setImagem(byteArray);
+
+        if (new GastoDAO(this).gravar(gasto)) {
+            MainActivity.instance.refreshGastos();
+            onBackPressed();
         }
 
     }

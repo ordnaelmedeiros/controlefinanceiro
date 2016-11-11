@@ -14,16 +14,27 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.lrmarkanjo.controlefinanceiro.adapters.GastoArrayAdapter;
 import com.lrmarkanjo.controlefinanceiro.banco.daos.GastoDAO;
 import com.lrmarkanjo.controlefinanceiro.banco.modelos.Gasto;
+import com.lrmarkanjo.controlefinanceiro.rest.Sincronizar;
+import com.lrmarkanjo.controlefinanceiro.rest.modelos.Teste;
 import com.lrmarkanjo.controlefinanceiro.views.AdicionarActivity;
 
 import java.util.ArrayList;
-import java.util.List;
+import com.loopj.android.http.*;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.entity.ByteArrayEntity;
+import cz.msebera.android.httpclient.entity.StringEntity;
+import cz.msebera.android.httpclient.message.BasicHeader;
+import cz.msebera.android.httpclient.protocol.HTTP;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener, AdapterView.OnItemClickListener {
 
@@ -68,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         lista = (ArrayList<Gasto>) new GastoDAO(this).selectAll();
         this.lstGastos.setAdapter(new GastoArrayAdapter(this, R.layout.gastos_row, lista));
+        //Snackbar.make(btnAdicionar, "Salvou com sucesso", Snackbar.LENGTH_LONG).setAction("Action", null).show();
 
     }
 
@@ -111,7 +123,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if (id == R.id.nav_adicionar) {
 
-            Snackbar.make(this.btnAdicionar, "Opção não Implementada", Snackbar.LENGTH_LONG).setAction("Action", null).show();
+            JSONObject jsonObject = new JSONObject();
+            ByteArrayEntity entity = null;
+            try {
+                jsonObject.put("id", 1);
+                jsonObject.put("descricao", "Descrição");
+                entity = new ByteArrayEntity(jsonObject.toString().getBytes("UTF-8"));
+                entity.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            Sincronizar.post(getApplicationContext(), "teste/objeto", entity, new JsonHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                    System.out.println("sucesso");
+                    Teste teste = new Teste();
+                    try {
+                        teste.setId(response.getInt("id"));
+                        teste.setDescricao(response.getString("descricao"));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    Snackbar.make(btnAdicionar, teste.getDescricao(), Snackbar.LENGTH_LONG).setAction("Action", null).show();
+
+                }
+
+            });
 
         }
 
