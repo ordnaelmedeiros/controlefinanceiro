@@ -40,6 +40,8 @@ import java.util.GregorianCalendar;
 
 public class AdicionarActivity extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemSelectedListener {
 
+    private final String TITULO = "Saída";
+
     private Button btnData;
     private EditText txtValor;
     private Spinner cbxGastoGrupo;
@@ -56,7 +58,9 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_adicionar);
+        this.setContentView(R.layout.activity_adicionar);
+
+        this.setTitle(TITULO);
 
         this.data = new Date();
         this.btnData = (Button) findViewById(R.id.btnData);
@@ -90,6 +94,7 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
             if (obj != null) {
 
                 this.gastoId = (Integer) obj;
+                this.setTitle(TITULO + " (id = "+this.gastoId+")");
                 Gasto gasto = new GastoDAO(this).select(gastoId);
 
                 this.data = gasto.getData();

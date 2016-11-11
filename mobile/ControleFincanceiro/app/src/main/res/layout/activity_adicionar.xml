@@ -14,53 +14,71 @@
     tools:context="com.lrmarkanjo.controlefinanceiro.views.AdicionarActivity"
     android:weightSum="1">
 
-    <Button
-        android:text="Data"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/btnData" />
 
-    <Spinner
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/cbxTipoPagamento"
-        android:spinnerMode="dialog" />
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
 
-    <Spinner
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/cbxGastoGrupo"
-        android:spinnerMode="dialog" />
+        <LinearLayout
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:orientation="vertical"
+            android:weightSum="1">
 
-    <Spinner
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/cbxGastoSubGrupo"
-        android:spinnerMode="dialog" />
+            <Button
+                android:text="Data"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/btnData" />
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="textPersonName"
-        android:ems="10"
-        android:id="@+id/txtDescricao"
-        android:hint="Descrição" />
+            <Spinner
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/cbxTipoPagamento"
+                android:spinnerMode="dialog" />
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="numberDecimal"
-        android:ems="10"
-        android:id="@+id/txtValor"
-        android:hint="Valor" />
+            <Spinner
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/cbxGastoGrupo"
+                android:spinnerMode="dialog" />
 
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="162dp"
-        android:id="@+id/btnImagem"
-        android:scaleType="fitStart"
-        android:adjustViewBounds="true"
-        android:cropToPadding="true"
-        app:srcCompat="@drawable/ic_menu_camera" />
+            <Spinner
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/cbxGastoSubGrupo"
+                android:spinnerMode="dialog" />
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:ems="10"
+                android:id="@+id/txtDescricao"
+                android:hint="Descrição" />
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:ems="10"
+                android:id="@+id/txtValor"
+                android:hint="Valor" />
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="162dp"
+                android:id="@+id/btnImagem"
+                android:scaleType="fitStart"
+                android:adjustViewBounds="true"
+                android:cropToPadding="true"
+                app:srcCompat="@drawable/ic_menu_camera" />
+
+
+        </LinearLayout>
+
+    </ScrollView>
 
 </LinearLayout>
