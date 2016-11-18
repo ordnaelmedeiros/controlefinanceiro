@@ -1,9 +1,12 @@
 package com.lrmarkanjo.controlefinanceiro;
 
+import android.accounts.AccountManager;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -16,32 +19,26 @@ import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.google.android.gms.auth.GoogleAuthUtil;
+import com.google.android.gms.common.AccountPicker;
 import com.lrmarkanjo.controlefinanceiro.adapters.GastoArrayAdapter;
 import com.lrmarkanjo.controlefinanceiro.banco.daos.GastoDAO;
 import com.lrmarkanjo.controlefinanceiro.banco.modelos.Gasto;
 import com.lrmarkanjo.controlefinanceiro.rest.Sincronizar;
-import com.lrmarkanjo.controlefinanceiro.rest.modelos.Teste;
+import com.lrmarkanjo.controlefinanceiro.rest.interfaces.IRecebeGasto;
+import com.lrmarkanjo.controlefinanceiro.rest.interfaces.IRecebePing;
 import com.lrmarkanjo.controlefinanceiro.views.AdicionarActivity;
+import com.lrmarkanjo.controlefinanceiro.views.UsuarioActivity;
 
 import java.util.ArrayList;
-import com.loopj.android.http.*;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import cz.msebera.android.httpclient.Header;
-import cz.msebera.android.httpclient.entity.ByteArrayEntity;
-import cz.msebera.android.httpclient.entity.StringEntity;
-import cz.msebera.android.httpclient.message.BasicHeader;
-import cz.msebera.android.httpclient.protocol.HTTP;
-
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener, AdapterView.OnItemClickListener {
+public class MainActivity extends AppCompatActivity implements Runnable, IRecebePing, NavigationView.OnNavigationItemSelectedListener, View.OnClickListener, AdapterView.OnItemClickListener {
 
     private FloatingActionButton btnAdicionar;
     private ListView lstGastos;
 
     public static MainActivity instance = null;
+    private static int PICK_ACCOUNT_REQUEST = 22;
 
 
 
@@ -70,6 +67,47 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         this.refreshGastos();
 
         instance = this;
+
+        Thread validaNet = new Thread(this);
+        validaNet.start();
+
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            boolean conectado = isConectadoWifi();
+            System.out.println("WIFI: " + conectado);
+            if (conectado) {
+                try {
+                    new Sincronizar().ping(getApplicationContext(), this);
+                } catch (Exception e) {}
+            }
+            try {
+                Thread.sleep(10000);
+            } catch (Exception e){}
+        }
+    }
+
+    @Override
+    public void recebePing() {
+        System.out.println("Servidor: ON");
+    }
+
+    private boolean isConectadoWifi() {
+
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo ni = cm.getActiveNetworkInfo();
+        if (ni!=null) {
+            //System.out.println("Internet: " + ni.getType() + " - " + ni.getTypeName() + " - " + (ni.getState()== NetworkInfo.State.CONNECTED));
+            if (ni.getType()==1 && NetworkInfo.State.CONNECTED.equals(ni.getState())) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
 
     }
 
@@ -121,37 +159,45 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_adicionar) {
+        if (id == R.id.nav_usuario) {
 
-            JSONObject jsonObject = new JSONObject();
-            ByteArrayEntity entity = null;
-            try {
-                jsonObject.put("id", 1);
-                jsonObject.put("descricao", "Descrição");
-                entity = new ByteArrayEntity(jsonObject.toString().getBytes("UTF-8"));
-                entity.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            Intent intencao = new Intent(this, UsuarioActivity.class);
+            startActivity(intencao);
 
-            Sincronizar.post(getApplicationContext(), "teste/objeto", entity, new JsonHttpResponseHandler() {
+        } else if (id == R.id.nav_adicionar) {
+
+            new Sincronizar().buscarGasto(getApplicationContext(), 30, new IRecebeGasto() {
                 @Override
-                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                    System.out.println("sucesso");
-                    Teste teste = new Teste();
-                    try {
-                        teste.setId(response.getInt("id"));
-                        teste.setDescricao(response.getString("descricao"));
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                public void result(Gasto gasto) {
+                    System.out.print("sucesso: " + gasto);
+                    if (gasto!=null) {
+                        //new GastoDAO(getApplicationContext()).gravar(gasto);
+                        refreshGastos();
                     }
-
-                    Snackbar.make(btnAdicionar, teste.getDescricao(), Snackbar.LENGTH_LONG).setAction("Action", null).show();
-
                 }
 
+                @Override
+                public void fail(String erro) {
+
+                }
             });
 
+            /*
+            for (Gasto gasto : lista) {
+
+                new Sincronizar().enviarGasto(getApplicationContext(), gasto, new IRecebeGasto() {
+                    @Override
+                    public void result(Gasto gasto) {
+                        System.out.print("sucesso");
+                    }
+
+                    @Override
+                    public void fail(String erro) {
+
+                    }
+                });
+            }
+*/
         }
 
         /*

@@ -145,6 +145,17 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
                 this.salvar();
                 return true;
             }
+            case R.id.btnRemoverGasto: {
+                if (this.gastoId!=null) {
+                    if (new GastoDAO(this).delete(this.gastoId)){
+                        MainActivity.instance.refreshGastos();
+                        onBackPressed();
+                    }
+                } else {
+                    System.out.println("não remover");
+                }
+                return true;
+            }
         }
         return false;
     }

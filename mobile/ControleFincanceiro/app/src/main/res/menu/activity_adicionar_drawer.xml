@@ -9,4 +9,10 @@
         android:title="Salvar"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/btnRemoverGasto"
+        android:icon="@drawable/ic_remove"
+        android:title="Remover"
+        app:showAsAction="never" />
+
 </menu>

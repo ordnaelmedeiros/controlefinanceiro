@@ -10,7 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 5;
     private static final String DATABASE_NAME = "controle_financeiro";
 
     public DBHelper(Context context) {
@@ -20,19 +20,8 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
 
-        String createTableGastos =
-            "create table gasto (" +
-                " gasto_id integer primary key autoincrement, " +
-                " data date, " +
-                " valor decimal(15,2), " +
-                " tipo text, " +
-                " grupo text, " +
-                " sub_grupo text, " +
-                " descricao text, " +
-                " imagem BLOB "+
-            ")";
-
         db.execSQL(createTableGastos);
+        db.execSQL(createTableUsuario);
 
     }
 
@@ -42,5 +31,33 @@ public class DBHelper extends SQLiteOpenHelper {
             String alterTableGastos = "alter table gasto add imagem BLOB";
             db.execSQL(alterTableGastos);
         }
+        if (oldVersion<3) {
+            db.execSQL(createTableUsuario);
+        }
+        if (oldVersion<5) {
+            db.execSQL("drop table usuario");
+            db.execSQL(createTableUsuario);
+        }
     }
+
+    private String createTableGastos =
+        "create table gasto (" +
+            " gasto_id integer primary key autoincrement, " +
+            " data date, " +
+            " valor decimal(15,2), " +
+            " tipo text, " +
+            " grupo text, " +
+            " sub_grupo text, " +
+            " descricao text, " +
+            " imagem BLOB "+
+        ")";
+
+    private String createTableUsuario =
+        "create table usuario (" +
+            " usuario_id integer, " +
+            " nome text, " +
+            " email text, " +
+            " senha text, " +
+            " foto BLOB "+
+        ")";
 }

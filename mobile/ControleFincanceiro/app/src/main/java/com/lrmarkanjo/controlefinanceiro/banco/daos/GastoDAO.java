@@ -156,4 +156,22 @@ public class GastoDAO {
 
     }
 
+    public boolean delete(Integer gastoId) {
+
+        try {
+
+            SQLiteDatabase db = new DBHelper(this.context).getWritableDatabase();
+
+            db.delete("gasto", " gasto_id = ? ", new String[]{String.valueOf(gastoId)});
+            db.close();
+
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+
+    }
+
 }

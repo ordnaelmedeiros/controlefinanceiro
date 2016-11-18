@@ -1,4 +1,4 @@
-package com.medeiros.ordnael.controlefinanceiro;
+package com.medeiros.ordnael.controlefinanceiro.controllers;
 
 import java.time.LocalDate;
 

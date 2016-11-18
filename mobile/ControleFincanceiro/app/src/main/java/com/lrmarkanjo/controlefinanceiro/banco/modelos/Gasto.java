@@ -1,7 +1,5 @@
 package com.lrmarkanjo.controlefinanceiro.banco.modelos;
 
-import android.graphics.Bitmap;
-
 import com.lrmarkanjo.controlefinanceiro.banco.enums.GastoGrupo;
 import com.lrmarkanjo.controlefinanceiro.banco.enums.GastoGrupoCusto;
 import com.lrmarkanjo.controlefinanceiro.banco.enums.TipoPagamento;
