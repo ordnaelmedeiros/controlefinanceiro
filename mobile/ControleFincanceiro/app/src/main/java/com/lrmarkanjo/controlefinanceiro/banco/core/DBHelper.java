@@ -10,7 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 8;
     private static final String DATABASE_NAME = "controle_financeiro";
 
     public DBHelper(Context context) {
@@ -38,18 +38,39 @@ public class DBHelper extends SQLiteOpenHelper {
             db.execSQL("drop table usuario");
             db.execSQL(createTableUsuario);
         }
+        if (oldVersion<6) {
+            String alterTableGastos = "alter table gasto add id_externo integer";
+            db.execSQL(alterTableGastos);
+
+            alterTableGastos = "alter table gasto add sincronizacao date";
+            db.execSQL(alterTableGastos);
+
+            alterTableGastos = "alter table gasto add ativo integer";
+            db.execSQL(alterTableGastos);
+        }
+        if (oldVersion<7) {
+            String alterTableGastos = "update gasto set sincronizacao = null, id_externo = null";
+            db.execSQL(alterTableGastos);
+        }
+        if (oldVersion<8) {
+            String alterTableGastos = "update gasto set ativo = 1";
+            db.execSQL(alterTableGastos);
+        }
     }
 
     private String createTableGastos =
         "create table gasto (" +
             " gasto_id integer primary key autoincrement, " +
+            " id_externo integer, " +
             " data date, " +
+            " sincronizacao date, " +
             " valor decimal(15,2), " +
             " tipo text, " +
             " grupo text, " +
             " sub_grupo text, " +
             " descricao text, " +
-            " imagem BLOB "+
+            " imagem BLOB, "+
+            " ativo integer " +
         ")";
 
     private String createTableUsuario =

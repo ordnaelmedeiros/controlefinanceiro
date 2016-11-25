@@ -1,5 +1,7 @@
 package com.medeiros.ordnael.javaangular.controller;
 
+import java.util.Date;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.hibernate.criterion.Restrictions;
@@ -38,6 +40,7 @@ public class GastoController extends ControllerCRUDGeneric<Gasto> {
 			Usuario usuario = (Usuario) resUsuario.createCriteria().add(Restrictions.eq("email", email)).uniqueResult();
 			
 			gasto.setUsuario(usuario);
+			gasto.setSincronizacao(new Date());
 			
 			resource.beginTransaction();
 			return resource.persist(gasto);
@@ -49,7 +52,7 @@ public class GastoController extends ControllerCRUDGeneric<Gasto> {
 	}
 	
 	@Override
-	public Gasto alterar(Gasto gasto) throws Exception {
+	public Gasto alterar(@RequestBody Gasto gasto) throws Exception {
 
 		try (
 			Resource<Gasto> resource = new Resource<>(Gasto.class);
@@ -60,7 +63,7 @@ public class GastoController extends ControllerCRUDGeneric<Gasto> {
 			Usuario usuario = (Usuario) resUsuario.createCriteria().add(Restrictions.eq("email", email)).uniqueResult();
 			
 			gasto.setUsuario(usuario);
-			
+			gasto.setSincronizacao(new Date());
 			
 			resource.beginTransaction();
 			return resource.merge(gasto);

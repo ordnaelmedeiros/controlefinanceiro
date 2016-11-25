@@ -50,9 +50,7 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
     private EditText txtDescricao;
     private ImageView btnImagem;
 
-    private Date data;
-    private Integer gastoId = null;
-    private byte[] byteArray;
+    private Gasto gasto;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,9 +58,11 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_adicionar);
 
+        this.gasto = new Gasto();
+
         this.setTitle(TITULO);
 
-        this.data = new Date();
+        this.gasto.setData(new Date());
         this.btnData = (Button) findViewById(R.id.btnData);
         this.btnData.setOnClickListener(this);
 
@@ -87,17 +87,13 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
         this.btnImagem = (ImageView) findViewById(R.id.btnImagem);
         this.btnImagem.setOnClickListener(this);
 
-        this.gastoId = null;
-
         if (this.getIntent()!=null && this.getIntent().getExtras()!=null) {
             Object obj = this.getIntent().getExtras().get("gasto_id");
             if (obj != null) {
 
-                this.gastoId = (Integer) obj;
-                this.setTitle(TITULO + " (id = "+this.gastoId+")");
-                Gasto gasto = new GastoDAO(this).select(gastoId);
-
-                this.data = gasto.getData();
+                Integer gastoId = (Integer) obj;
+                this.setTitle(TITULO + " (id = "+gastoId+")");
+                this.gasto = new GastoDAO(this).select(gastoId);
 
                 int spinnerPosition = 0;
                 spinnerPosition = araTipoPagamento.getPosition(gasto.getTipoPagamento());
@@ -119,8 +115,7 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
                 }
 
                 if (gasto.getImagem()!=null) {
-                    byteArray = gasto.getImagem();
-                    Bitmap bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(gasto.getImagem(), 0, gasto.getImagem().length);
                     this.btnImagem.setImageBitmap(bitmap);
                 }
 
@@ -146,8 +141,8 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
                 return true;
             }
             case R.id.btnRemoverGasto: {
-                if (this.gastoId!=null) {
-                    if (new GastoDAO(this).delete(this.gastoId)){
+                if (this.gasto.getId()!=null) {
+                    if (new GastoDAO(this).delete(this.gasto.getId())){
                         MainActivity.instance.refreshGastos();
                         onBackPressed();
                     }
@@ -163,7 +158,7 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
     private SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
 
     private void formataData() {
-        this.btnData.setText(df.format(this.data));
+        this.btnData.setText(df.format(this.gasto.getData()));
     }
 
     private void verificaOutro() {
@@ -203,11 +198,6 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
 
     private void salvar() {
 
-        SimpleDateFormat dfSql = new SimpleDateFormat("yyyy-MM-dd");
-
-        Gasto gasto = new Gasto();
-        gasto.setId(this.gastoId);
-        gasto.setData(this.data);
         if (!this.txtValor.getText().equals("")) {
             gasto.setValor(new BigDecimal(this.txtValor.getText().toString()));
         }
@@ -215,7 +205,10 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
         gasto.setGrupo(GastoGrupo.valueOf(this.cbxGastoGrupo.getSelectedItem().toString()));
         gasto.setSubGrupo(GastoGrupoCusto.valueOf(this.cbxGastoSubGrupo.getSelectedItem().toString()));
         gasto.setDescricao(this.txtDescricao.getText().toString());
-        gasto.setImagem(byteArray);
+        if (gasto.getId()!=null) {
+            GregorianCalendar gc = new GregorianCalendar(2000, Calendar.JANUARY, 1);
+            gasto.setSincronizacao(gc.getTime());
+        }
 
         if (new GastoDAO(this).gravar(gasto)) {
             MainActivity.instance.refreshGastos();
@@ -229,7 +222,7 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
         if (id==0) {
 
             GregorianCalendar gc = new GregorianCalendar();
-            gc.setTime(this.data);
+            gc.setTime(this.gasto.getData());
 
             return new DatePickerDialog(this, datePickeListener, gc.get(Calendar.YEAR), gc.get(Calendar.MONTH), gc.get(Calendar.DATE));
         }
@@ -240,7 +233,7 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
         @Override
         public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
             GregorianCalendar gc = new GregorianCalendar(year, month, dayOfMonth);
-            data = gc.getTime();
+            gasto.setData(gc.getTime());
             formataData();
         }
     };
@@ -286,7 +279,7 @@ public class AdicionarActivity extends AppCompatActivity implements View.OnClick
 
                 stream = new ByteArrayOutputStream();
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                byteArray = stream.toByteArray();
+                gasto.setImagem(stream.toByteArray());
 
             } catch (Exception e) {
                 e.printStackTrace();

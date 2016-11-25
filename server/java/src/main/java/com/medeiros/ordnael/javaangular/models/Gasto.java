@@ -44,13 +44,14 @@ public class Gasto {
     private byte[] imagem;
 	
 	@Column
-	@SequenceGenerator(name="seq_gasto_atualizacao", sequenceName="seq_gasto_atualizacao", initialValue=1)
-	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="seq_gasto_atualizacao")
-	private Integer atualizacao;
+	private Date sincronizacao;
 	
 	@ManyToOne(fetch=FetchType.EAGER)
 	@JoinColumn(name="usuario_id")
 	private Usuario usuario;
+	
+	@Column
+	private Integer ativo;
 	
 	public Long getId() {
 		return id;
@@ -100,17 +101,23 @@ public class Gasto {
 	public void setImagem(byte[] imagem) {
 		this.imagem = imagem;
 	}
-	public Integer getAtualizacao() {
-		return atualizacao;
-	}
-	public void setAtualizacao(Integer atualizacao) {
-		this.atualizacao = atualizacao;
-	}
 	public Usuario getUsuario() {
 		return usuario;
 	}
 	public void setUsuario(Usuario usuario) {
 		this.usuario = usuario;
+	}
+	public Date getSincronizacao() {
+		return sincronizacao;
+	}
+	public void setSincronizacao(Date sincronizacao) {
+		this.sincronizacao = sincronizacao;
+	}
+	public Integer getAtivo() {
+		return ativo;
+	}
+	public void setAtivo(Integer ativo) {
+		this.ativo = ativo;
 	}
     
 }

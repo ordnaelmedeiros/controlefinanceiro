@@ -23,7 +23,9 @@ import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.AccountPicker;
 import com.lrmarkanjo.controlefinanceiro.adapters.GastoArrayAdapter;
 import com.lrmarkanjo.controlefinanceiro.banco.daos.GastoDAO;
+import com.lrmarkanjo.controlefinanceiro.banco.daos.UsuarioDAO;
 import com.lrmarkanjo.controlefinanceiro.banco.modelos.Gasto;
+import com.lrmarkanjo.controlefinanceiro.banco.modelos.Usuario;
 import com.lrmarkanjo.controlefinanceiro.rest.Sincronizar;
 import com.lrmarkanjo.controlefinanceiro.rest.interfaces.IRecebeGasto;
 import com.lrmarkanjo.controlefinanceiro.rest.interfaces.IRecebePing;
@@ -92,6 +94,24 @@ public class MainActivity extends AppCompatActivity implements Runnable, IRecebe
     @Override
     public void recebePing() {
         System.out.println("Servidor: ON");
+
+        try {
+
+            Usuario usuario = new UsuarioDAO(MainActivity.instance.getApplicationContext()).select();
+            if (usuario!=null && usuario.getEmail()!=null && usuario.getEmail().length()>5) {
+
+                Gasto gasto = new GastoDAO(getApplicationContext()).selectNaoSincronizado();
+                if (gasto!=null && gasto.getId()!=null) {
+                    System.out.println(gasto.getId());
+                    new Sincronizar().enviarGasto(getApplicationContext(), gasto, null);
+                }
+
+            }
+
+        } catch (Exception e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+
     }
 
     private boolean isConectadoWifi() {

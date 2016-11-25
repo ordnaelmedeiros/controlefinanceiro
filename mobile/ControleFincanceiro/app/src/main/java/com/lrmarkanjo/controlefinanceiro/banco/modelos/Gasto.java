@@ -14,13 +14,16 @@ import java.util.Date;
 public class Gasto {
 
     private Integer id;
+    private Integer idExterno;
     private Date data = new Date();
+    private Date sincronizacao;
     private BigDecimal valor;
     private TipoPagamento tipoPagamento;
     private GastoGrupo grupo;
     private GastoGrupoCusto subGrupo;
     private String descricao;
     private byte[] imagem;
+    private Integer ativo;
 
     public Integer getId() {
         return id;
@@ -84,5 +87,29 @@ public class Gasto {
 
     public void setImagem(byte[] imagem) {
         this.imagem = imagem;
+    }
+
+    public Date getSincronizacao() {
+        return sincronizacao;
+    }
+
+    public void setSincronizacao(Date sincronizacao) {
+        this.sincronizacao = sincronizacao;
+    }
+
+    public Integer getIdExterno() {
+        return idExterno;
+    }
+
+    public void setIdExterno(Integer idExterno) {
+        this.idExterno = idExterno;
+    }
+
+    public Integer getAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(Integer ativo) {
+        this.ativo = ativo;
     }
 }

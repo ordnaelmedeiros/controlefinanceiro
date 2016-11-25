@@ -19,16 +19,15 @@ import com.lrmarkanjo.controlefinanceiro.rest.interfaces.IRecebePing;
 import com.lrmarkanjo.controlefinanceiro.rest.interfaces.IRecebeUsuario;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.math.BigDecimal;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import cz.msebera.android.httpclient.Header;
 import cz.msebera.android.httpclient.HeaderElement;
-import cz.msebera.android.httpclient.HttpEntity;
 import cz.msebera.android.httpclient.ParseException;
 import cz.msebera.android.httpclient.entity.ByteArrayEntity;
 import cz.msebera.android.httpclient.message.BasicHeader;
@@ -40,6 +39,8 @@ public class Sincronizar {
     public static final String BASE_URL = "http://192.168.100.4:8080/JavaAngular/";
 
     private static AsyncHttpClient client = new AsyncHttpClient();
+
+    public static Context context;
 
     /*
     public static void get(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
@@ -60,6 +61,8 @@ public class Sincronizar {
 
     public void enviarUsuario(Context context, final Usuario usuario, final IRecebeUsuario recebe, boolean novo) {
 
+        Sincronizar.context = context;
+
         JSONObject jsonObject = new JSONObject();
         ByteArrayEntity entity = null;
         try {
@@ -77,7 +80,7 @@ public class Sincronizar {
 
         if (novo) {
 
-            client.post(context, BASE_URL+"/usuario", entity, "application/json", new JsonHttpResponseHandler() {
+            client.post(Sincronizar.context, BASE_URL+"/usuario", entity, "application/json", new JsonHttpResponseHandler() {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                     try {
@@ -99,7 +102,7 @@ public class Sincronizar {
             });
 
         } else {
-            client.put(context, BASE_URL + "/usuario", entity, "application/json", new JsonHttpResponseHandler() {
+            client.put(Sincronizar.context, BASE_URL + "/usuario", entity, "application/json", new JsonHttpResponseHandler() {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                     try {
@@ -125,7 +128,32 @@ public class Sincronizar {
 
     public void enviarGasto(Context context, Gasto obj, final IRecebeGasto recebe) {
 
-        Gasto gasto = new GastoDAO(context).select(obj.getId());
+        SyncHttpClient clientS = new SyncHttpClient();
+        clientS.setTimeout(30000);
+
+
+        Header[] headers = new Header[1];
+        headers[0] = new Header() {
+            @Override
+            public String getName() {
+                return "User-Agent";
+            }
+
+            @Override
+            public String getValue() {
+                Usuario usuario = new UsuarioDAO(MainActivity.instance.getApplicationContext()).select();
+                return usuario.getEmail();
+            }
+
+            @Override
+            public HeaderElement[] getElements() throws ParseException {
+                return new HeaderElement[0];
+            }
+        };
+
+
+        Sincronizar.context = context;
+        final Gasto gasto = new GastoDAO(context).select(obj.getId());
 
         JSONObject jsonObject = new JSONObject();
         ByteArrayEntity entity = null;
@@ -146,26 +174,64 @@ public class Sincronizar {
             if (gasto.getSubGrupo()!=null) {
                 jsonObject.put("subGrupo", gasto.getSubGrupo().toString());
             }
-            jsonObject.put("tipoPagamento", gasto.getTipoPagamento());
+            if (gasto.getIdExterno()!=null) {
+                jsonObject.put("id", gasto.getIdExterno());
+            }
+            jsonObject.put("tipoPagamento", gasto.getTipoPagamento().toString());
+            jsonObject.put("ativo", gasto.getAtivo());
 
             entity = new ByteArrayEntity(jsonObject.toString().getBytes("UTF-8"));
             entity.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
+
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        client.post(context, BASE_URL+"/gasto", entity, "application/json", new JsonHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                System.out.println("sucesso");
+        if (gasto.getIdExterno()==null) {
 
-            }
+            clientS.post(Sincronizar.context, BASE_URL + "/gasto", headers, entity, "application/json", new JsonHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
 
-            @Override
-            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                System.out.println("erro: " + responseString);
-            }
-        });
+                    try {
+
+                        gasto.setIdExterno(response.getInt("id"));
+                        gasto.setSincronizacao(null);
+                        new GastoDAO(Sincronizar.context).gravar(gasto);
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                    System.out.println("erro: " + responseString);
+                }
+            });
+        } else {
+            clientS.put(Sincronizar.context, BASE_URL + "/gasto", headers, entity, "application/json", new JsonHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                    try {
+
+                        gasto.setIdExterno(response.getInt("id"));
+                        gasto.setSincronizacao(null);
+                        new GastoDAO(Sincronizar.context).gravar(gasto);
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                    System.out.println("erro: " + responseString);
+                }
+            });
+        }
 
     }
 
